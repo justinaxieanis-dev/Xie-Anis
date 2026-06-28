@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Language App UI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --blue-color: #2b5cf6;
+            --pink-color: #ff5e62;
+            --yellow-color: #ffc107;
+            --text-main: #1a1a1a;
+            --text-muted: #666;
+            --bg-light: #f5f5f5;
+            --white: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: #e9ecef;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* حاوية التطبيق لمحاكاة شاشة الهاتف على الحاسوب */
+        .app-container {
+            background-color: var(--white);
+            width: 100%;
+            max-width: 400px;
+            height: 100vh;
+            max-height: 850px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        @media (min-width: 401px) {
+            .app-container {
+                height: 90vh;
+                border-radius: 30px;
+            }
+        }
+
+        /* ----- الرأس (Header) ----- */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 25px 20px;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .flag-link {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            text-decoration: none;
+            color: var(--text-main);
+            transition: transform 0.2s ease;
+        }
+
+        .flag-link:hover {
+            transform: scale(1.05);
+        }
+
+        .flag-img {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .level-selector {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .level-selector:hover {
+            color: var(--blue-color);
+        }
+
+        .streak-badge {
+            background-color: var(--bg-light);
+            padding: 6px 14px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .streak-badge:hover {
+            background-color: #e0e0e0;
+        }
+
+        .streak-badge i {
+            color: #ccc;
+        }
+
+        /* ----- المحتوى الرئيسي ----- */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            text-align: center;
+        }
+
+        /* حركة الموجة */
+        .wave-animation {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 50px;
+        }
+
+        .pill {
+            width: 45px;
+            height: 70px;
+            border-radius: 30px;
+            animation: wave 1.5s infinite ease-in-out;
+        }
+
+        .pill.blue-1 { background-color: var(--blue-color); animation-delay: 0s; }
+        .pill.pink { background-color: var(--pink-color); animation-delay: 0.2s; }
+        .pill.yellow { background-color: var(--yellow-color); animation-delay: 0.4s; }
+        .pill.blue-2 { background-color: var(--blue-color); animation-delay: 0.6s; }
+
+        @keyframes wave {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        /* النصوص */
+        .title {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--text-main);
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            margin-bottom: 40px;
+        }
+
+        /* منطقة الأزرار */
+        .action-area {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            width: 100%;
+            margin-bottom: 25px;
+        }
+
+        .settings-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: none;
+            background-color: var(--bg-light);
+            color: var(--text-main);
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .settings-btn:hover {
+            background-color: #e2e8f0;
+            transform: rotate(15deg);
+        }
+
+        .start-btn {
+            flex: 1;
+            height: 60px;
+            border-radius: 30px;
+            border: none;
+            background-color: var(--blue-color);
+            color: var(--white);
+            font-size: 1.2rem;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(43, 92, 246, 0.3);
+        }
+
+        .start-btn:hover {
+            background-color: #1d4ed8;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(43, 92, 246, 0.4);
+        }
+
+        .explore-link {
+            text-decoration: none;
+            color: var(--text-main);
+            font-weight: 700;
+            font-size: 1.1rem;
+            transition: color 0.2s;
+        }
+
+        .explore-link:hover {
+            color: var(--blue-color);
+        }
+
+        /* ----- شريط التنقل السفلي (Bottom Nav) ----- */
+        .bottom-nav {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 15px 10px 25px 10px;
+            background-color: var(--white);
+            border-top: 1px solid #f0f0f0;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            font-weight: 700;
+            position: relative;
+            transition: color 0.2s;
+        }
+
+        .nav-item.active, .nav-item:hover {
+            color: var(--text-main);
+        }
+
+        .nav-item i {
+            font-size: 1.5rem;
+        }
+
+        /* شارة الإشعار */
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: 0px;
+            background-color: #93c5fd;
+            color: var(--white);
+            font-size: 0.6rem;
+            width: 16px;
+            height: 16px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 50%;
+            border: 2px solid var(--white);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        
+        <header class="header">
+            <div class="header-left">
+                <a href="#" class="flag-link" title="Change Language">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Flag_of_the_People%27s_Republic_of_China.svg" alt="China Flag" class="flag-img">
+                    <i class="fa-solid fa-chevron-down fa-xs"></i>
+                </a>
+                <div class="level-selector">
+                    Level 1 <i class="fa-solid fa-chevron-down fa-xs"></i>
+                </div>
+            </div>
+            <div class="streak-badge">
+                <i class="fa-solid fa-droplet"></i> 0
+            </div>
+        </header>
+
+        <main class="main-content">
+            
+            <div class="wave-animation">
+                <div class="pill blue-1"></div>
+                <div class="pill pink"></div>
+                <div class="pill yellow"></div>
+                <div class="pill blue-2"></div>
+            </div>
+
+            <h1 class="title">Say hello and feelings</h1>
+            <p class="subtitle">Warm greetings</p>
+
+            <div class="action-area">
+                <button class="settings-btn">
+                    <i class="fa-solid fa-sliders"></i>
+                </button>
+                <button class="start-btn">Start</button>
+            </div>
+
+            <a href="#" class="explore-link">Explore on my own</a>
+
+        </main>
+
+        <nav class="bottom-nav">
+            <a href="#" class="nav-item active">
+                <i class="fa-solid fa-wave-square"></i>
+                Speak
+            </a>
+            <a href="vocab.html" class="nav-item">
+                <div class="notification-badge">0</div>
+                <i class="fa-solid fa-book"></i>
+                Vocab
+            </a>
+            <a href="#" class="nav-item">
+                <i class="fa-solid fa-chart-line"></i>
+                Progress
+            </a>
+        </nav>
+
+    </div>
+
+</body>
+</html>
