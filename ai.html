@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Voice Chat Tutor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --blue-color: #2b5cf6;
+            --pink-color: #ff5e62;
+            --yellow-color: #ffc107;
+            --text-main: #1a1a1a;
+            --text-muted: #666;
+            --bg-light: rgba(255, 255, 255, 0.6);
+            --white: #ffffff;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: #1e1e2f;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        .app-container {
+            background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
+            width: 100%;
+            max-width: 400px;
+            height: 100vh;
+            max-height: 850px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        .app-container::before {
+            content: ''; position: absolute; top: -10%; left: -20%; width: 280px; height: 280px;
+            background: radial-gradient(circle, rgba(147, 197, 253, 0.5) 0%, rgba(255, 255, 255, 0) 70%);
+            z-index: -1; filter: blur(35px);
+        }
+        
+        .app-container::after {
+            content: ''; position: absolute; bottom: 15%; right: -20%; width: 300px; height: 300px;
+            background: radial-gradient(circle, rgba(255, 154, 158, 0.35) 0%, rgba(255, 255, 255, 0) 70%);
+            z-index: -1; filter: blur(40px);
+        }
+
+        @media (min-width: 401px) {
+            .app-container { height: 90vh; border-radius: 30px; }
+        }
+
+        .header {
+            display: flex; align-items: center; justify-content: space-between; padding: 20px;
+            background: rgba(255, 255, 255, 0.4); backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.5); z-index: 10;
+        }
+
+        .back-btn {
+            color: var(--text-main); font-size: 1.2rem; text-decoration: none;
+            width: 40px; height: 40px; display: flex; align-items: center;
+            justify-content: center; border-radius: 50%; transition: background 0.2s;
+        }
+
+        .back-btn:hover { background: rgba(0, 0, 0, 0.05); }
+
+        .header-title {
+            font-size: 1.2rem; font-weight: 800; color: var(--text-main);
+            display: flex; align-items: center; gap: 8px; text-transform: capitalize;
+        }
+
+        .header-title i { color: var(--blue-color); }
+
+        .status-dot {
+            width: 8px; height: 8px; background-color: #22c55e;
+            border-radius: 50%; display: inline-block; box-shadow: 0 0 8px #22c55e;
+            transition: background-color 0.3s;
+        }
+        .status-dot.busy { background-color: var(--yellow-color); box-shadow: 0 0 8px var(--yellow-color); }
+
+        .chat-area {
+            flex: 1; overflow-y: auto; padding: 20px;
+            display: flex; flex-direction: column; gap: 15px; scroll-behavior: smooth;
+        }
+
+        .chat-area::-webkit-scrollbar { width: 4px; }
+        .chat-area::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 10px; }
+
+        .msg-row { display: flex; width: 100%; margin-bottom: 10px; }
+        .msg-row.user { justify-content: flex-end; }
+        .msg-row.ai { justify-content: flex-start; }
+
+        .bubble {
+            max-width: 85%; padding: 14px 18px; border-radius: 20px;
+            font-size: 0.95rem; font-weight: 600; line-height: 1.5;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03); position: relative;
+        }
+
+        .ai .bubble {
+            background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(10px);
+            color: var(--text-main); border: 1px solid rgba(255, 255, 255, 0.6);
+            border-top-left-radius: 5px; cursor: pointer; transition: transform 0.2s;
+        }
+        .ai .bubble:active { transform: scale(0.98); }
+
+        .ai-click-hint {
+            font-size: 0.7rem; color: var(--blue-color); margin-top: 8px;
+            opacity: 0.8; display: flex; align-items: center; gap: 5px; font-weight: 800;
+        }
+
+        .ai-chinese-text {
+            font-size: 1.4rem; font-weight: 800; color: var(--blue-color);
+            display: block; margin-top: 8px; letter-spacing: 1px;
+        }
+
+        .ai-pinyin-text {
+            font-size: 0.9rem; color: var(--text-muted); display: block;
+            margin-bottom: 5px; font-weight: 700;
+        }
+
+        .user .bubble {
+            background: linear-gradient(135deg, var(--blue-color) 0%, #1d4ed8 100%);
+            color: var(--white); border-top-right-radius: 5px;
+            box-shadow: 0 6px 20px rgba(43, 92, 246, 0.25); display: flex; align-items: center; gap: 8px;
+        }
+
+        .typing-indicator {
+            display: flex; gap: 4px; align-items: center; height: 20px;
+        }
+        .typing-dot {
+            width: 6px; height: 6px; background-color: var(--blue-color);
+            border-radius: 50%; animation: typing 1.4s infinite ease-in-out both;
+        }
+        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+        @keyframes typing { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
+
+        .bottom-audio-bar {
+            padding: 25px 20px; background: rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(20px); border-top: 1px solid rgba(255,255,255,0.5);
+            display: flex; flex-direction: column; align-items: center; gap: 10px; z-index: 10;
+        }
+
+        .hint-text { font-size: 0.85rem; font-weight: 700; color: var(--text-muted); transition: color 0.3s; }
+
+        .mic-container { position: relative; display: flex; justify-content: center; align-items: center; }
+
+        .mic-btn {
+            width: 70px; height: 70px; border-radius: 50%; border: none;
+            background: linear-gradient(135deg, var(--blue-color) 0%, #1d4ed8 100%);
+            color: var(--white); font-size: 1.6rem; cursor: pointer;
+            box-shadow: 0 10px 30px rgba(43, 92, 246, 0.4);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 5;
+        }
+
+        .mic-btn:active, .mic-btn.recording {
+            transform: scale(0.9); background: linear-gradient(135deg, var(--pink-color) 0%, #e11d48 100%);
+            box-shadow: 0 10px 30px rgba(255, 94, 98, 0.4);
+        }
+        
+        .mic-btn.disabled {
+            background: #cbd5e1; box-shadow: none; cursor: not-allowed; transform: scale(0.95);
+        }
+
+        .pulse-ring {
+            position: absolute; width: 100%; height: 100%; border-radius: 50%;
+            background: rgba(43, 92, 246, 0.3); z-index: 1; pointer-events: none; transition: all 0.3s;
+        }
+
+        .mic-btn.recording ~ .pulse-ring {
+            animation: pulse-animation 1.5s infinite ease-out; background: rgba(255, 94, 98, 0.3);
+        }
+
+        @keyframes pulse-animation { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(1.6); opacity: 0; } }
+
+        /* Modal */
+        .modal-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(30, 30, 47, 0.4); backdrop-filter: blur(15px);
+            display: flex; justify-content: center; align-items: center; z-index: 999;
+            opacity: 0; pointer-events: none; transition: opacity 0.4s ease;
+        }
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+        .modal-card {
+            background: rgba(255, 255, 255, 0.9); border: 1px solid rgba(255, 255, 255, 0.6);
+            padding: 35px 25px; border-radius: 28px; width: 85%; text-align: center;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.15); transform: scale(0.85); transition: transform 0.4s;
+        }
+        .modal-overlay.active .modal-card { transform: scale(1); }
+        .modal-icon { font-size: 2.8rem; color: var(--pink-color); margin-bottom: 15px; animation: pulse-icon 2s infinite; }
+        @keyframes pulse-icon { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); opacity: 0.9; } }
+        .modal-card h3 { font-size: 1.35rem; color: var(--text-main); margin-bottom: 12px; font-weight: 800; }
+        .modal-card p { font-size: 0.95rem; color: var(--text-muted); margin-bottom: 25px; line-height: 1.5; font-weight: 700; }
+        .modal-btn {
+            background: linear-gradient(135deg, var(--blue-color) 0%, #1d4ed8 100%); color: var(--white);
+            border: none; padding: 14px; border-radius: 16px; font-size: 1rem; font-weight: 800;
+            cursor: pointer; width: 100%; transition: all 0.2s;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <div class="modal-overlay" id="devModal">
+            <div class="modal-card">
+                <i class="fa-solid fa-screwdriver-wrench modal-icon"></i>
+                <h3>Under Development</h3>
+                <p>Other levels are still under development. We are working hard to bring them to you soon!</p>
+                <button class="modal-btn" id="modalBackBtn">Back to Home</button>
+            </div>
+        </div>
+        
+        <div class="modal-overlay" id="successModal">
+            <div class="modal-card">
+                <i class="fa-solid fa-award modal-icon" style="color: var(--blue-color);"></i>
+                <h3>Lesson Completed!</h3>
+                <p>Excellent work. Your progress has been saved.</p>
+                <button class="modal-btn" id="successBackBtn">Continue</button>
+            </div>
+        </div>
+
+        <header class="header">
+            <a href="index.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i></a>
+            <div class="header-title" id="headerTitleText">
+                <i class="fa-solid fa-circle-notch fa-spin"></i> Loading...
+            </div>
+            <div style="width: 40px;"></div> 
+        </header>
+
+        <main class="chat-area" id="chatArea"></main>
+
+        <footer class="bottom-audio-bar">
+            <div class="hint-text" id="hintText">Initializing Tutor...</div>
+            <div class="mic-container">
+                <button class="mic-btn disabled" id="micBtn" disabled>
+                    <i class="fa-solid fa-microphone"></i>
+                </button>
+                <div class="pulse-ring"></div>
+            </div>
+        </footer>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCDul7ZNxGbSPzk6abVBwTg0dcb7aqDDe4",
+            authDomain: "xie-4b5ba.firebaseapp.com",
+            projectId: "xie-4b5ba",
+            storageBucket: "xie-4b5ba.firebasestorage.app",
+            messagingSenderId: "44290087288",
+            appId: "1:44290087288:web:cb2d1b05ab9b63b20a508d"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const userSettingsDoc = doc(db, "settings", "main_user");
+        
+        const API_URL = '/api/chat'; 
+
+        // عناصر الواجهة
+        const headerTitleText = document.getElementById('headerTitleText');
+        const devModal = document.getElementById('devModal');
+        const successModal = document.getElementById('successModal');
+        const chatArea = document.getElementById('chatArea');
+        const micBtn = document.getElementById('micBtn');
+        const hintText = document.getElementById('hintText');
+        const statusDot = document.createElement('span');
+        statusDot.className = 'status-dot';
+
+        document.getElementById('modalBackBtn').addEventListener('click', () => window.location.href = "index.html");
+        document.getElementById('successBackBtn').addEventListener('click', () => window.location.href = "index.html");
+
+        // إدارة حالة الدرس
+        let currentLessonKey = "lesson 1-1";
+        let lessonWords = [];
+        let currentWordIndex = 0;
+        let isReviewPhase = false;
+
+        async function initializeUserData() {
+            try {
+                const docSnap = await getDoc(userSettingsDoc);
+                let userLevel = 1;
+
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    if (data.level) userLevel = parseInt(data.level);
+                    
+                    if (userLevel > 1) {
+                        headerTitleText.innerHTML = `<i class="fa-solid fa-robot"></i> Locked <span class="status-dot" style="background-color:#ff5e62;"></span>`;
+                        devModal.classList.add('active');
+                        return; 
+                    }
+                    if (data.lesson) currentLessonKey = data.lesson;
+                }
+                
+                headerTitleText.innerHTML = `<i class="fa-solid fa-robot"></i> ${currentLessonKey} `;
+                headerTitleText.appendChild(statusDot);
+
+                await fetchLessonData(currentLessonKey);
+
+            } catch (error) {
+                headerTitleText.innerHTML = `<i class="fa-solid fa-robot"></i> Error <span class="status-dot" style="background-color:#ff5e62;"></span>`;
+            }
+        }
+
+        // جلب الكلمات من ملف data.html
+        async function fetchLessonData(lessonKey) {
+            try {
+                const res = await fetch('data.html');
+                const text = await res.text();
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(text, 'text/html');
+                const jsonStr = doc.getElementById('vocabData').textContent;
+                const allData = JSON.parse(jsonStr);
+                
+                lessonWords = allData.lessons[lessonKey] || [];
+                if(lessonWords.length === 0) throw new Error("No words found for this lesson.");
+                
+                // بدء الدرس الاصطناعي
+                sendToTutor("[START]");
+            } catch (error) {
+                alert("Failed to load lesson data. Please check data.html.");
+            }
+        }
+
+        // =================================================================
+        // نظام إدارة الميكروفون
+        // =================================================================
+        let mediaRecorder;
+        let audioChunks = [];
+        let isRecording = false;
+
+        function setMicState(isDisabled, customText) {
+            if (isDisabled) {
+                micBtn.classList.add('disabled');
+                micBtn.setAttribute('disabled', 'true');
+                hintText.textContent = customText || "AI is speaking...";
+                statusDot.classList.add('busy');
+            } else {
+                micBtn.classList.remove('disabled');
+                micBtn.removeAttribute('disabled');
+                hintText.textContent = "Tap to speak";
+                statusDot.classList.remove('busy');
+            }
+        }
+
+        const blobToBase64 = (blob) => {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onloadend = () => resolve(reader.result.split(',')[1]);
+                reader.readAsDataURL(blob);
+            });
+        };
+
+        micBtn.addEventListener('click', async () => {
+            if (isRecording) {
+                mediaRecorder.stop();
+                isRecording = false;
+                micBtn.classList.remove('recording');
+                micBtn.innerHTML = '<i class="fa-solid fa-microphone"></i>';
+                setMicState(true, "Processing audio...");
+                return;
+            }
+
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                audioChunks = [];
+
+                mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
+                mediaRecorder.onstop = async () => {
+                    stream.getTracks().forEach(t => t.stop());
+                    const audioBlob = new Blob(audioChunks, { type: mediaRecorder.mimeType || 'audio/webm' });
+                    const base64Audio = await blobToBase64(audioBlob);
+                    await transcribeUserAudio(base64Audio, mediaRecorder.mimeType);
+                };
+
+                mediaRecorder.start();
+                isRecording = true;
+                micBtn.classList.add('recording');
+                micBtn.innerHTML = '<i class="fa-solid fa-stop"></i>';
+                hintText.textContent = "Listening... Tap to stop";
+                hintText.style.color = "var(--pink-color)";
+            } catch (err) {
+                alert("Microphone access denied.");
+                setMicState(false);
+            }
+        });
+
+        async function transcribeUserAudio(base64Data, mimeType) {
+            const prompt = `Transcribe this speech accurately. Return ONLY the spoken text, either Chinese characters or English. No markdown, no translation.`;
+            
+            try {
+                const response = await fetch(API_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }, { inlineData: { mimeType: mimeType || 'audio/webm', data: base64Data } }] }] })
+                });
+                
+                const data = await response.json();
+                if (data.candidates && data.candidates[0].content) {
+                    const transcript = data.candidates[0].content.parts[0].text.trim();
+                    appendUserMessage(transcript);
+                    sendToTutor(transcript);
+                } else {
+                    setMicState(false);
+                }
+            } catch (error) {
+                alert("Network error during transcription.");
+                setMicState(false);
+            }
+        }
+
+        // =================================================================
+        // محرك المعلم (AI Tutor Logic) باستخدام Gemini
+        // =================================================================
+        async function sendToTutor(userTranscript) {
+            setMicState(true, "AI is thinking...");
+            showTypingIndicator();
+
+            isReviewPhase = (currentWordIndex >= lessonWords.length);
+            const targetWords = isReviewPhase ? lessonWords.join(', ') : lessonWords[currentWordIndex];
+            
+            const prompt = `
+            You are an AI Chinese language tutor teaching an HSK1 student.
+            Target words for this lesson: ${lessonWords.join(', ')}.
+            Current focus: ${isReviewPhase ? "Final Review of all words" : "Teaching the word: " + targetWords}.
+
+            User just said: "${userTranscript}". (If "[START]", introduce yourself and start teaching the first word).
+
+            Pedagogical Rules:
+            1. Evaluate the user's speech. If it's correct/close to the target Chinese, praise them and set "advance" to true.
+            2. If incorrect, correct them gently, set "advance" to false, and ask them to repeat the SAME sentence.
+            3. You must provide a simple Chinese sentence using the current target word. ONLY use basic HSK1 vocabulary.
+            4. If in Review phase, ask them a final question combining the words. If they pass, set "complete" to true.
+            
+            You MUST respond ONLY with a raw JSON object (No Markdown, No code blocks):
+            {
+              "english": "Your English explanation and dialogue.",
+              "chinese": "The Chinese target sentence for the user to practice (leave empty if not applicable)",
+              "pinyin": "Pinyin for the chinese text",
+              "advance": boolean (true if the user succeeded and should move to the next word),
+              "complete": boolean (true if the review is passed and lesson is done)
+            }`;
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                });
+
+                const data = await response.json();
+                removeTypingIndicator();
+
+                let rawText = data.candidates[0].content.parts[0].text.trim();
+                rawText = rawText.replace(/```json/g, "").replace(/```/g, "").trim();
+                
+                const aiResponse = JSON.parse(rawText);
+
+                if (aiResponse.advance && !isReviewPhase) {
+                    currentWordIndex++;
+                }
+
+                playAiResponseAndTypewriter(aiResponse);
+
+                if (aiResponse.complete) {
+                    finishLessonAndUpdateFirebase();
+                }
+
+            } catch (error) {
+                removeTypingIndicator();
+                setMicState(false);
+                alert("Error connecting to AI Tutor. Please try again.");
+            }
+        }
+
+        // =================================================================
+        // واجهة المحادثة، النطق (TTS)، وتأثير الآلة الكاتبة
+        // =================================================================
+        function appendUserMessage(text) {
+            const row = document.createElement('div');
+            row.className = 'msg-row user';
+            row.innerHTML = `<div class="bubble">${text}</div>`;
+            chatArea.appendChild(row);
+            chatArea.scrollTop = chatArea.scrollHeight;
+        }
+
+        let typingBubble = null;
+        function showTypingIndicator() {
+            const row = document.createElement('div');
+            row.className = 'msg-row ai';
+            row.id = 'typingIndicatorRow';
+            row.innerHTML = `
+                <div class="bubble">
+                    <div class="typing-indicator">
+                        <div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>
+                    </div>
+                </div>`;
+            chatArea.appendChild(row);
+            chatArea.scrollTop = chatArea.scrollHeight;
+        }
+
+        function removeTypingIndicator() {
+            const el = document.getElementById('typingIndicatorRow');
+            if (el) el.remove();
+        }
+
+        function playAiResponseAndTypewriter(aiData) {
+            setMicState(true, "AI is speaking...");
+
+            const row = document.createElement('div');
+            row.className = 'msg-row ai';
+            const bubble = document.createElement('div');
+            bubble.className = 'bubble';
+            row.appendChild(bubble);
+            chatArea.appendChild(row);
+
+            const engUt = new SpeechSynthesisUtterance(aiData.english || "");
+            engUt.lang = 'en-US';
+            engUt.rate = 0.9;
+            
+            const zhUt = new SpeechSynthesisUtterance(aiData.chinese || "");
+            zhUt.lang = 'zh-CN';
+            zhUt.rate = 0.8;
+
+            // إعداد محتوى الفقاعة النهائي المخفي لإضافته تدريجياً
+            let i = 0;
+            bubble.innerHTML = '';
+            
+            let typeInterval = setInterval(() => {
+                if(aiData.english) {
+                    bubble.textContent += aiData.english.charAt(i);
+                    i++;
+                    if (i >= aiData.english.length) {
+                        clearInterval(typeInterval);
+                        appendChineseContent(bubble, aiData);
+                    }
+                } else {
+                    clearInterval(typeInterval);
+                    appendChineseContent(bubble, aiData);
+                }
+                chatArea.scrollTop = chatArea.scrollHeight;
+            }, 35); // سرعة الكتابة
+
+            zhUt.onend = () => { setMicState(false); hintText.style.color = "var(--text-muted)"; };
+            if (!aiData.chinese) engUt.onend = () => { setMicState(false); hintText.style.color = "var(--text-muted)"; };
+
+            // وظيفة الضغط لإعادة الاستماع
+            bubble.addEventListener('click', () => {
+                window.speechSynthesis.cancel(); // إيقاف أي نطق حالي
+                if(aiData.english) window.speechSynthesis.speak(engUt);
+                if(aiData.chinese) window.speechSynthesis.speak(zhUt);
+            });
+
+            // بدء النطق الصوتي
+            if(aiData.english) window.speechSynthesis.speak(engUt);
+            if(aiData.chinese) window.speechSynthesis.speak(zhUt);
+        }
+
+        function appendChineseContent(bubble, aiData) {
+            if(aiData.chinese) {
+                bubble.innerHTML += `<span class="ai-chinese-text">${aiData.chinese}</span>`;
+                if(aiData.pinyin) {
+                    bubble.innerHTML += `<span class="ai-pinyin-text">${aiData.pinyin}</span>`;
+                }
+            }
+            bubble.innerHTML += `<div class="ai-click-hint"><i class="fa-solid fa-volume-high"></i> Click to listen</div>`;
+            chatArea.scrollTop = chatArea.scrollHeight;
+        }
+
+        // =================================================================
+        // حفظ التقدم وإنهاء الدرس
+        // =================================================================
+        async function finishLessonAndUpdateFirebase() {
+            try {
+                let parts = currentLessonKey.split('-'); // e.g. ["lesson 1", "1"]
+                let nextSubLevel = parseInt(parts[1]) + 1;
+                let nextLesson = parts[0] + '-' + nextSubLevel;
+                
+                await setDoc(userSettingsDoc, { lesson: nextLesson }, { merge: true });
+                
+                setTimeout(() => {
+                    successModal.classList.add('active');
+                }, 3000); // إظهار التهنئة بعد 3 ثواني من انتهاء تقييم المراجعة
+
+            } catch(e) {
+                console.error("Error saving progress", e);
+            }
+        }
+
+        // تشغيل التهيئة عند تحميل الصفحة
+        initializeUserData();
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Language App UI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --blue-color: #2b5cf6;
+            --pink-color: #ff5e62;
+            --yellow-color: #ffc107;
+            --text-main: #1a1a1a;
+            --text-muted: #666;
+            --bg-light: rgba(255, 255, 255, 0.6);
+            --white: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: #1e1e2f; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            /* منع النسخ والتحديد */
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        /* حاوية التطبيق - تصميم عصري مع ضباب ملون */
+        .app-container {
+            background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
+            width: 100%;
+            max-width: 400px;
+            height: 100vh;
+            max-height: 850px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        /* الضباب الملون في الخلفية */
+        .app-container::before {
+            content: '';
+            position: absolute;
+            top: -15%; left: -20%; width: 250px; height: 250px;
+            background: radial-gradient(circle, rgba(147, 197, 253, 0.6) 0%, rgba(255, 255, 255, 0) 70%);
+            z-index: -1;
+            filter: blur(30px);
+        }
+        
+        .app-container::after {
+            content: '';
+            position: absolute;
+            bottom: 5%; right: -20%; width: 300px; height: 300px;
+            background: radial-gradient(circle, rgba(255, 154, 158, 0.4) 0%, rgba(255, 255, 255, 0) 70%);
+            z-index: -1;
+            filter: blur(40px);
+        }
+
+        @media (min-width: 401px) {
+            .app-container {
+                height: 90vh;
+                border-radius: 30px;
+            }
+        }
+
+        /* ----- الرأس (Header) ----- */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 25px 20px;
+            z-index: 99; 
+            position: relative;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .flag-link {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            text-decoration: none;
+            color: var(--text-main);
+            transition: transform 0.2s ease;
+        }
+
+        .flag-link:hover { transform: scale(1.05); }
+
+        .flag-img {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        /* القائمة المنسدلة للمستويات */
+        .level-dropdown-container {
+            position: relative;
+        }
+
+        .level-selector {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 800;
+            font-size: 1.1rem;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 12px;
+            transition: background 0.3s;
+            color: var(--text-main);
+        }
+
+        .level-selector:hover {
+            background: rgba(43, 92, 246, 0.1);
+            color: var(--blue-color);
+        }
+
+        .level-menu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            margin-top: 10px;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+            z-index: 100;
+            min-width: 130px;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+        }
+
+        .level-menu.active {
+            display: flex;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .level-option {
+            padding: 12px 20px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s;
+            color: var(--text-main);
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+        
+        .level-option:last-child { border-bottom: none; }
+
+        .level-option:hover {
+            background: rgba(43, 92, 246, 0.15);
+            color: var(--blue-color);
+        }
+
+        .streak-badge {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(10px);
+            padding: 8px 16px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 800;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+            border: 1px solid rgba(255,255,255,0.5);
+        }
+
+        .streak-badge i { color: #ccc; }
+
+        /* ----- المحتوى الرئيسي ----- */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            text-align: center;
+            z-index: 10;
+        }
+
+        /* تأثير الزجاج (Glassmorphism) للاسطوانات */
+        .wave-animation {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 50px;
+        }
+
+        .pill {
+            width: 45px;
+            height: 70px;
+            border-radius: 30px;
+            animation: wave 1.5s infinite ease-in-out;
+            /* Glassmorphism */
+            background: rgba(255, 255, 255, 0.3) !important;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.05);
+        }
+
+        .pill.blue-1 { box-shadow: 0 8px 25px rgba(43, 92, 246, 0.2); border-color: rgba(43, 92, 246, 0.3); animation-delay: 0s; }
+        .pill.pink { box-shadow: 0 8px 25px rgba(255, 94, 98, 0.2); border-color: rgba(255, 94, 98, 0.3); animation-delay: 0.2s; }
+        .pill.yellow { box-shadow: 0 8px 25px rgba(255, 193, 7, 0.2); border-color: rgba(255, 193, 7, 0.3); animation-delay: 0.4s; }
+        .pill.blue-2 { box-shadow: 0 8px 25px rgba(43, 92, 246, 0.2); border-color: rgba(43, 92, 246, 0.3); animation-delay: 0.6s; }
+
+        @keyframes wave {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        /* النصوص */
+        .title {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--text-main);
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            margin-bottom: 40px;
+            font-weight: 600;
+        }
+
+        /* منطقة الأزرار */
+        .action-area {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            width: 100%;
+            margin-bottom: 25px;
+        }
+
+        .settings-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(10px);
+            color: var(--text-main);
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+            border: 1px solid rgba(255,255,255,0.5);
+        }
+
+        .settings-btn:hover {
+            background: rgba(255, 255, 255, 0.9);
+            transform: rotate(15deg);
+        }
+
+        .start-btn {
+            flex: 1;
+            height: 60px;
+            border-radius: 30px;
+            border: none;
+            background: linear-gradient(135deg, var(--blue-color) 0%, #1d4ed8 100%);
+            color: var(--white);
+            font-size: 1.2rem;
+            font-weight: 800;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 25px rgba(43, 92, 246, 0.4);
+        }
+
+        .start-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(43, 92, 246, 0.5);
+        }
+
+        /* التأثير المطور لزر البدء */
+        .start-btn.loading {
+            pointer-events: none; /* منع النقر أثناء التحميل */
+            position: relative;
+            background: transparent !important; /* إخفاء الخلفية الأصلية لإظهار الحواف */
+            overflow: hidden;
+            z-index: 1;
+            border: none;
+        }
+        
+        /* الخط الملون الدوار حول الحواف */
+        .start-btn.loading::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: conic-gradient(from 0deg, var(--blue-color), var(--pink-color), var(--yellow-color), var(--blue-color));
+            animation: spin-border-line 1.5s linear infinite;
+            z-index: -2;
+        }
+
+        /* قناع داخلي زجاجي يعطي مظهر الخط النحيف حول الحافة ويغير النص */
+        .start-btn.loading::after {
+            content: 'Loading...';
+            position: absolute;
+            top: 2px; left: 2px; right: 2px; bottom: 2px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 28px; /* متناسق مع حواف الزر الأصلية */
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--blue-color);
+            font-weight: 800;
+            font-size: 1.1rem;
+            letter-spacing: 0.5px;
+        }
+
+        @keyframes spin-border-line {
+            100% { transform: rotate(360deg); }
+        }
+
+        .explore-link {
+            text-decoration: none;
+            color: var(--text-main);
+            font-weight: 800;
+            font-size: 1.1rem;
+            transition: color 0.2s;
+        }
+
+        .explore-link:hover { color: var(--blue-color); }
+
+        /* ----- شريط التنقل السفلي (Bottom Nav) ----- */
+        .bottom-nav {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 15px 10px 25px 10px;
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255,255,255,0.6);
+            z-index: 10;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            font-weight: 800;
+            position: relative;
+            transition: color 0.2s;
+        }
+
+        .nav-item.active, .nav-item:hover { color: var(--blue-color); }
+        .nav-item i { font-size: 1.5rem; }
+
+        /* شارة الإشعار لـ Vocab */
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: var(--blue-color);
+            color: var(--white);
+            font-size: 0.65rem;
+            width: 18px;
+            height: 18px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 50%;
+            border: 2px solid var(--white);
+            font-weight: 800;
+            box-shadow: 0 2px 5px rgba(43,92,246,0.4);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        
+        <header class="header">
+            <div class="header-left">
+                <a href="#" class="flag-link" title="Change Language">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Flag_of_the_People%27s_Republic_of_China.svg" alt="China Flag" class="flag-img">
+                </a>
+                
+                <div class="level-dropdown-container">
+                    <div class="level-selector" id="levelSelectorBtn">
+                        Level <span id="currentLevelText">1</span> <i class="fa-solid fa-chevron-down fa-xs"></i>
+                    </div>
+                    <div class="level-menu" id="levelMenu">
+                        <div class="level-option" data-level="1">Level 1</div>
+                        <div class="level-option" data-level="2">Level 2</div>
+                        <div class="level-option" data-level="3">Level 3</div>
+                        <div class="level-option" data-level="4">Level 4</div>
+                        <div class="level-option" data-level="5">Level 5</div>
+                        <div class="level-option" data-level="6">Level 6</div>
+                    </div>
+                </div>
+
+            </div>
+            <div class="streak-badge">
+                <i class="fa-solid fa-droplet"></i> 0
+            </div>
+        </header>
+
+        <main class="main-content">
+            
+            <div class="wave-animation">
+                <div class="pill blue-1"></div>
+                <div class="pill pink"></div>
+                <div class="pill yellow"></div>
+                <div class="pill blue-2"></div>
+            </div>
+
+            <h1 class="title">Say hello and feelings</h1>
+            <p class="subtitle">Warm greetings</p>
+
+            <div class="action-area">
+                <button class="settings-btn">
+                    <i class="fa-solid fa-sliders"></i>
+                </button>
+                <button class="start-btn">Start</button>
+            </div>
+
+            <a href="#" class="explore-link">Explore on my own</a>
+
+        </main>
+
+        <nav class="bottom-nav">
+            <a href="#" class="nav-item active">
+                <i class="fa-solid fa-wave-square"></i>
+                Speak
+            </a>
+            <a href="vocab.html" class="nav-item">
+                <div class="notification-badge" id="navBadge" style="display: none;">0</div>
+                <i class="fa-solid fa-book"></i>
+                Vocab
+            </a>
+            <a href="#" class="nav-item">
+                <i class="fa-solid fa-chart-line"></i>
+                Progress
+            </a>
+        </nav>
+
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // إعدادات Firebase الخاصة بك
+        const firebaseConfig = {
+            apiKey: "AIzaSyCDul7ZNxGbSPzk6abVBwTg0dcb7aqDDe4",
+            authDomain: "xie-4b5ba.firebaseapp.com",
+            projectId: "xie-4b5ba",
+            storageBucket: "xie-4b5ba.firebasestorage.app",
+            messagingSenderId: "44290087288",
+            appId: "1:44290087288:web:cb2d1b05ab9b63b20a508d",
+            measurementId: "G-HDKJMNZREY"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // 1. جلب عدد الكلمات للعرض في شريط التنقل
+        const vocabCollection = collection(db, "vocab");
+        const navBadge = document.getElementById('navBadge');
+
+        async function fetchVocabCount() {
+            try {
+                const snapshot = await getDocs(vocabCollection);
+                const learningCount = snapshot.docs.filter(doc => !doc.data().mastered).length;
+                
+                if(learningCount > 0) {
+                    navBadge.style.display = 'flex';
+                    navBadge.textContent = learningCount;
+                } else {
+                    navBadge.style.display = 'none';
+                }
+            } catch (error) {
+                console.error("Error fetching vocab count:", error);
+            }
+        }
+        
+        fetchVocabCount();
+
+        // 2. إدارة قائمة المستويات وحفظها في Firebase
+        const levelSelectorBtn = document.getElementById('levelSelectorBtn');
+        const levelMenu = document.getElementById('levelMenu');
+        const currentLevelText = document.getElementById('currentLevelText');
+        
+        // استخدام مستند ثابت لحفظ الإعدادات كون التطبيق لا يحتوي على نظام تسجيل دخول حالياً
+        const userSettingsDoc = doc(db, "settings", "main_user");
+
+        // فتح وإغلاق القائمة المنسدلة
+        levelSelectorBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            levelMenu.classList.toggle('active');
+        });
+
+        // إغلاق القائمة عند النقر خارجها
+        document.addEventListener('click', (e) => {
+            if (!levelSelectorBtn.contains(e.target) && !levelMenu.contains(e.target)) {
+                levelMenu.classList.remove('active');
+            }
+        });
+
+        // جلب المستوى المحفوظ عند تحميل الصفحة
+        async function loadSavedLevel() {
+            try {
+                const docSnap = await getDoc(userSettingsDoc);
+                if (docSnap.exists() && docSnap.data().level) {
+                    currentLevelText.textContent = docSnap.data().level;
+                }
+            } catch (error) {
+                console.error("Error loading level:", error);
+            }
+        }
+        
+        loadSavedLevel();
+
+        // حفظ المستوى عند الاختيار
+        document.querySelectorAll('.level-option').forEach(option => {
+            option.addEventListener('click', async (e) => {
+                const selectedLevel = e.target.getAttribute('data-level');
+                currentLevelText.textContent = selectedLevel;
+                levelMenu.classList.remove('active');
+                
+                try {
+                    await setDoc(userSettingsDoc, { level: selectedLevel }, { merge: true });
+                } catch (error) {
+                    console.error("Error saving level:", error);
+                }
+            });
+        });
+
+
+        // تفعيل زر Start المطور بمدة 5 ثوانٍ
+        const startBtn = document.querySelector('.start-btn');
+        if (startBtn) {
+            startBtn.addEventListener('click', () => {
+                startBtn.classList.add('loading');
+                // الانتظار لمدة 5000 ملي ثانية (5 ثوانٍ) قبل الانتقال
+                setTimeout(() => {
+                    window.location.href = 'ai.html';
+                }, 5000);
+            });
+        }
+
+    </script>
+</body>
+</html>
